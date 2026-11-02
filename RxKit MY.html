@@ -1,0 +1,1465 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>RxKit MY</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+
+<style>
+/* ── Design tokens ── */
+:root {
+  --bg:         #F0F4F8;
+  --surface:    #FFFFFF;
+  --surface-2:  #F7F9FC;
+  --border:     #DDE3EC;
+  --fg:         #0F1923;
+  --fg-2:       #4A5568;
+  --fg-3:       #8A97A8;
+  --accent:     #1A56DB;
+  --accent-bg:  #EBF0FF;
+  --accent-fg:  #FFFFFF;
+  --green:      #0E9F6E;
+  --green-bg:   #E8F8F2;
+  --red:        #C81E1E;
+  --red-bg:     #FEF2F2;
+  --yellow:     #C27803;
+  --yellow-bg:  #FEF3C7;
+  --orange:     #D03801;
+  --orange-bg:  #FFF3EE;
+  --purple:     #7E3AF2;
+  --purple-bg:  #F5F0FF;
+  --shadow-sm:  0 1px 3px rgba(15,25,35,0.06);
+  --shadow:     0 2px 8px rgba(15,25,35,0.08);
+  --shadow-lg:  0 8px 24px rgba(15,25,35,0.10);
+  --radius:     10px;
+  --radius-sm:  6px;
+  --font:       'Inter', system-ui, sans-serif;
+  --mono:       'JetBrains Mono', monospace;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg:        #0A0F14;
+    --surface:   #111820;
+    --surface-2: #161E28;
+    --border:    #1E2D3D;
+    --fg:        #E8EFF7;
+    --fg-2:      #8DA0B5;
+    --fg-3:      #4D6070;
+    --accent:    #4C82F7;
+    --accent-bg: #0D1A3A;
+    --green:     #31C48D;
+    --green-bg:  #062618;
+    --red:       #F05252;
+    --red-bg:    #200C0C;
+    --yellow:    #FACA15;
+    --yellow-bg: #241A00;
+    --orange:    #FF6B35;
+    --orange-bg: #241200;
+    --purple:    #AC94FA;
+    --purple-bg: #1A0F35;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg:        #0A0F14;
+  --surface:   #111820;
+  --surface-2: #161E28;
+  --border:    #1E2D3D;
+  --fg:        #E8EFF7;
+  --fg-2:      #8DA0B5;
+  --fg-3:      #4D6070;
+  --accent:    #4C82F7;
+  --accent-bg: #0D1A3A;
+  --green:     #31C48D;
+  --green-bg:  #062618;
+  --red:       #F05252;
+  --red-bg:    #200C0C;
+  --yellow:    #FACA15;
+  --yellow-bg: #241A00;
+  --orange:    #FF6B35;
+  --orange-bg: #241200;
+  --purple:    #AC94FA;
+  --purple-bg: #1A0F35;
+  color-scheme: dark;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--fg);
+  font-size: 15px;
+  line-height: 1.5;
+  padding-left: max(0px, env(safe-area-inset-left, 0px));
+  padding-right: max(0px, env(safe-area-inset-right, 0px));
+  padding-block: 0;
+}
+
+/* ── Layout ── */
+.app { display: flex; flex-direction: column; min-height: 100vh; }
+
+/* ── Topbar ── */
+.topbar {
+  position: sticky;
+  top: env(safe-area-inset-top, 0px);
+  z-index: 50;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 0 max(20px, env(safe-area-inset-left, 0px));
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 56px;
+  gap: 12px;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0 0 auto;
+  height: env(safe-area-inset-top, 0px);
+  background: var(--surface);
+  z-index: 51;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+  font-size: 1.05rem;
+  letter-spacing: -0.02em;
+  color: var(--fg);
+  text-decoration: none;
+}
+
+.logo-badge {
+  background: var(--accent);
+  color: var(--accent-fg);
+  font-size: 0.6rem;
+  font-weight: 700;
+  padding: 2px 5px;
+  border-radius: 4px;
+  letter-spacing: 0.05em;
+}
+
+.patient-toggle {
+  display: flex;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.patient-toggle button {
+  font-family: var(--font);
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: 5px 12px;
+  border: none;
+  background: transparent;
+  color: var(--fg-2);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.patient-toggle button.active {
+  background: var(--accent);
+  color: var(--accent-fg);
+}
+
+/* ── Sidebar + Content ── */
+.layout {
+  display: flex;
+  flex: 1;
+}
+
+.sidebar {
+  width: 220px;
+  flex-shrink: 0;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  padding: 16px 0;
+  position: sticky;
+  top: 56px;
+  height: calc(100vh - 56px);
+  overflow-y: auto;
+}
+
+.sidebar-label {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--fg-3);
+  text-transform: uppercase;
+  padding: 0 16px 8px;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 16px;
+  cursor: pointer;
+  border-left: 3px solid transparent;
+  color: var(--fg-2);
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: all 0.15s;
+  user-select: none;
+}
+
+.nav-item:hover { background: var(--surface-2); color: var(--fg); }
+
+.nav-item.active {
+  background: var(--accent-bg);
+  color: var(--accent);
+  border-left-color: var(--accent);
+}
+
+.nav-icon { font-size: 1rem; width: 20px; text-align: center; }
+
+/* ── Content ── */
+.content {
+  flex: 1;
+  min-width: 0;
+  padding: 28px max(24px, env(safe-area-inset-right, 0px)) 48px max(24px, env(safe-area-inset-left, 0px));
+}
+
+.module { display: none; }
+.module.active { display: block; }
+
+/* ── Module header ── */
+.module-header { margin-bottom: 24px; }
+.module-title {
+  font-size: 1.4rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.module-desc { color: var(--fg-2); font-size: 0.875rem; margin-top: 4px; }
+.patient-badge {
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 20px;
+  letter-spacing: 0.04em;
+}
+.patient-badge.adult { background: var(--accent-bg); color: var(--accent); }
+.patient-badge.peds  { background: var(--green-bg);  color: var(--green);  }
+
+/* ── Cards & panels ── */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+  padding: 20px;
+  margin-bottom: 16px;
+}
+
+.card-title {
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--fg-3);
+  margin-bottom: 14px;
+}
+
+/* ── Form controls ── */
+.field { margin-bottom: 14px; }
+.field label {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--fg-2);
+  margin-bottom: 5px;
+}
+
+input[type=text], input[type=number], select, textarea {
+  width: 100%;
+  font-family: var(--font);
+  font-size: 0.9rem;
+  padding: 9px 12px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--fg);
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+input:focus, select:focus, textarea:focus { border-color: var(--accent); }
+input::placeholder { color: var(--fg-3); }
+
+.field-row { display: flex; gap: 12px; }
+.field-row .field { flex: 1; min-width: 0; }
+
+/* ── Buttons ── */
+.btn {
+  font-family: var(--font);
+  font-size: 0.875rem;
+  font-weight: 600;
+  padding: 9px 18px;
+  border-radius: var(--radius-sm);
+  border: none;
+  cursor: pointer;
+  transition: opacity 0.15s, transform 0.1s;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.btn:active { transform: scale(0.97); }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn-primary { background: var(--accent); color: var(--accent-fg); }
+.btn-primary:hover { opacity: 0.88; }
+.btn-secondary { background: var(--surface-2); color: var(--fg); border: 1px solid var(--border); }
+.btn-secondary:hover { border-color: var(--accent); color: var(--accent); }
+.btn-sm { padding: 5px 12px; font-size: 0.8rem; }
+
+/* ── Result panels ── */
+.result {
+  border-radius: var(--radius);
+  padding: 16px 20px;
+  margin-top: 16px;
+  display: none;
+  border-left: 4px solid transparent;
+}
+.result.show { display: block; }
+.result.safe    { background: var(--green-bg);  border-color: var(--green);  color: var(--green);  }
+.result.warn    { background: var(--yellow-bg); border-color: var(--yellow); color: var(--yellow); }
+.result.danger  { background: var(--red-bg);    border-color: var(--red);    color: var(--red);    }
+.result.info    { background: var(--accent-bg); border-color: var(--accent); color: var(--accent); }
+.result.neutral { background: var(--surface-2); border-color: var(--border); color: var(--fg-2);  }
+
+.result-title { font-weight: 700; font-size: 0.95rem; margin-bottom: 6px; }
+.result-body  { font-size: 0.875rem; line-height: 1.65; color: var(--fg); }
+
+/* ── Tables ── */
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
+th { background: var(--surface-2); color: var(--fg-2); font-weight: 600; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; padding: 9px 12px; text-align: left; border-bottom: 1px solid var(--border); }
+td { padding: 10px 12px; border-bottom: 1px solid var(--border); vertical-align: top; }
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: var(--surface-2); }
+
+/* ── Tags ── */
+.tag {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.73rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 20px;
+  letter-spacing: 0.03em;
+}
+.tag-green  { background: var(--green-bg);  color: var(--green);  }
+.tag-red    { background: var(--red-bg);    color: var(--red);    }
+.tag-yellow { background: var(--yellow-bg); color: var(--yellow); }
+.tag-orange { background: var(--orange-bg); color: var(--orange); }
+.tag-purple { background: var(--purple-bg); color: var(--purple); }
+.tag-blue   { background: var(--accent-bg); color: var(--accent); }
+
+/* ── Disclaimer ── */
+.disclaimer {
+  background: var(--yellow-bg);
+  border: 1px solid var(--yellow);
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+  font-size: 0.78rem;
+  color: var(--yellow);
+  margin-bottom: 20px;
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+}
+
+/* ── Search box ── */
+.search-wrap { position: relative; }
+.search-wrap input { padding-left: 36px; }
+.search-icon { position: absolute; left: 11px; top: 50%; transform: translateY(-50%); color: var(--fg-3); font-size: 0.9rem; pointer-events: none; }
+
+/* ── Loading spinner ── */
+.spinner {
+  width: 16px; height: 16px;
+  border: 2px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+  display: inline-block;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── Toast ── */
+.toast {
+  position: fixed;
+  bottom: max(24px, env(safe-area-inset-bottom, 0px));
+  left: 50%;
+  transform: translateX(-50%) translateY(80px);
+  background: var(--fg);
+  color: var(--bg);
+  padding: 10px 20px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1);
+  z-index: 200;
+  white-space: nowrap;
+  pointer-events: none;
+}
+.toast.show { transform: translateX(-50%) translateY(0); }
+
+/* ── Home grid ── */
+.home-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 14px;
+  margin-top: 8px;
+}
+
+.home-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  cursor: pointer;
+  transition: box-shadow 0.2s, border-color 0.2s, transform 0.15s;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.home-card:hover { box-shadow: var(--shadow-lg); border-color: var(--accent); transform: translateY(-2px); }
+.home-card-icon { font-size: 1.8rem; }
+.home-card-name { font-weight: 700; font-size: 0.95rem; }
+.home-card-desc { font-size: 0.8rem; color: var(--fg-2); line-height: 1.4; }
+
+/* ── Mono values ── */
+.mono { font-family: var(--mono); font-size: 0.9rem; }
+.value-big { font-size: 1.8rem; font-weight: 700; font-family: var(--mono); letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+
+/* ── Responsive ── */
+@media (max-width: 640px) {
+  .sidebar { display: none; }
+  .content { padding: 16px max(16px, env(safe-area-inset-right, 0px)) 80px max(16px, env(safe-area-inset-left, 0px)); }
+  .bottom-nav {
+    display: flex;
+    position: fixed;
+    bottom: 0;
+    left: 0; right: 0;
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    z-index: 40;
+  }
+  .bottom-nav button {
+    flex: 1;
+    font-family: var(--font);
+    font-size: 0.6rem;
+    font-weight: 600;
+    padding: 8px 4px;
+    border: none;
+    background: transparent;
+    color: var(--fg-3);
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    transition: color 0.15s;
+  }
+  .bottom-nav button.active { color: var(--accent); }
+  .bottom-nav .bnav-icon { font-size: 1.1rem; }
+  .field-row { flex-direction: column; gap: 0; }
+  .home-grid { grid-template-columns: 1fr 1fr; }
+}
+
+@media (min-width: 641px) { .bottom-nav { display: none; } }
+
+@media (prefers-reduced-motion: reduce) {
+  *, .home-card, .toast { transition: none; animation: none; }
+}
+</style>
+
+<!-- APP SHELL -->
+<div class="app">
+
+  <!-- Topbar -->
+  <div class="topbar">
+    <div class="logo" onclick="showModule('home')">
+      ⚕️ RxKit <span class="logo-badge">MY</span>
+    </div>
+    <div class="patient-toggle">
+      <button id="btn-adult" class="active" onclick="setPatient('adult')">Adult</button>
+      <button id="btn-peds"               onclick="setPatient('peds')">Paeds</button>
+    </div>
+  </div>
+
+  <div class="layout">
+
+    <!-- Sidebar (desktop) -->
+    <nav class="sidebar">
+      <div class="sidebar-label">Modules</div>
+      <div class="nav-item active" data-mod="home"        onclick="showModule('home')">        <span class="nav-icon">🏠</span> Home</div>
+      <div class="nav-item"        data-mod="dose"        onclick="showModule('dose')">        <span class="nav-icon">🧮</span> Dose Calculator</div>
+      <div class="nav-item"        data-mod="interaction" onclick="showModule('interaction')"> <span class="nav-icon">💊</span> Drug Interactions</div>
+      <div class="nav-item"        data-mod="iv"          onclick="showModule('iv')">          <span class="nav-icon">💉</span> IV Compatibility</div>
+      <div class="nav-item"        data-mod="crush"       onclick="showModule('crush')">       <span class="nav-icon">🔨</span> Crush/Split Guide</div>
+      <div class="nav-item"        data-mod="highalert"   onclick="showModule('highalert')">   <span class="nav-icon">⚠️</span> High Alert & LASA</div>
+      <div class="nav-item"        data-mod="pregnancy"   onclick="showModule('pregnancy')">   <span class="nav-icon">🤰</span> Pregnancy Safety</div>
+      <div class="nav-item"        data-mod="lab"         onclick="showModule('lab')">         <span class="nav-icon">📊</span> Lab Interpreter</div>
+    </nav>
+
+    <!-- Content -->
+    <main class="content">
+
+      <!-- ══ HOME ══ -->
+      <div class="module active" id="mod-home">
+        <div class="module-header">
+          <div class="module-title">⚕️ RxKit MY</div>
+          <div class="module-desc">Malaysian pharmacy clinical toolkit — select a module to begin.</div>
+        </div>
+        <div class="disclaimer">
+          ⚠️ <span>For use by qualified pharmacists and pharmacy students. Always verify with primary references. Not a substitute for clinical judgment.</span>
+        </div>
+        <div class="home-grid">
+          <div class="home-card" onclick="showModule('dose')">        <div class="home-card-icon">🧮</div><div class="home-card-name">Dose Calculator</div>       <div class="home-card-desc">Weight-based, renal & hepatic adjusted dosing</div></div>
+          <div class="home-card" onclick="showModule('interaction')"> <div class="home-card-icon">💊</div><div class="home-card-name">Drug Interactions</div>    <div class="home-card-desc">Check interactions & drug-food effects</div></div>
+          <div class="home-card" onclick="showModule('iv')">          <div class="home-card-icon">💉</div><div class="home-card-name">IV Compatibility</div>     <div class="home-card-desc">Y-site & admixture compatibility check</div></div>
+          <div class="home-card" onclick="showModule('crush')">       <div class="home-card-icon">🔨</div><div class="home-card-name">Crush/Split Guide</div>   <div class="home-card-desc">Which tablets can be crushed or split</div></div>
+          <div class="home-card" onclick="showModule('highalert')">   <div class="home-card-icon">⚠️</div><div class="home-card-name">High Alert & LASA</div>   <div class="home-card-desc">MOH Malaysia high-alert & look-alike drugs</div></div>
+          <div class="home-card" onclick="showModule('pregnancy')">   <div class="home-card-icon">🤰</div><div class="home-card-name">Pregnancy Safety</div>    <div class="home-card-desc">FDA/ADEC categories & guidance</div></div>
+          <div class="home-card" onclick="showModule('lab')">         <div class="home-card-icon">📊</div><div class="home-card-name">Lab Interpreter</div>     <div class="home-card-desc">Flag abnormal renal, liver & electrolyte values</div></div>
+        </div>
+      </div>
+
+      <!-- ══ DOSE CALCULATOR ══ -->
+      <div class="module" id="mod-dose">
+        <div class="module-header">
+          <div class="module-title">🧮 Dose Calculator <span class="patient-badge adult" id="dose-badge">Adult</span></div>
+          <div class="module-desc">Weight-based dosing with renal adjustment (Cockcroft-Gault)</div>
+        </div>
+        <div class="disclaimer">⚠️ <span>Always verify doses against current formulary. Adjust for individual patient factors.</span></div>
+
+        <div class="card">
+          <div class="card-title">Patient Parameters</div>
+          <div class="field-row">
+            <div class="field"><label>Weight (kg)</label><input type="number" id="dose-weight" placeholder="70" min="0.5" max="300" step="0.1"></div>
+            <div class="field" id="dose-age-field"><label>Age <span id="dose-age-unit">(years)</span></label><input type="number" id="dose-age" placeholder="30" min="0" max="120"></div>
+          </div>
+          <div class="field-row">
+            <div class="field">
+              <label>Sex</label>
+              <select id="dose-sex"><option value="male">Male</option><option value="female">Female</option></select>
+            </div>
+            <div class="field"><label>Serum Creatinine (µmol/L)</label><input type="number" id="dose-scr" placeholder="80" min="1" max="2000"></div>
+          </div>
+          <div class="field">
+            <label>Drug dose per kg (mg/kg)</label>
+            <input type="number" id="dose-mgkg" placeholder="e.g. 10" min="0" step="0.01">
+          </div>
+          <div class="field">
+            <label>Max dose (mg) — optional</label>
+            <input type="number" id="dose-max" placeholder="e.g. 500" min="0">
+          </div>
+          <button class="btn btn-primary" onclick="calcDose()">Calculate</button>
+        </div>
+
+        <div id="dose-result" class="result info">
+          <div class="result-title" id="dose-result-title"></div>
+          <div class="result-body" id="dose-result-body"></div>
+        </div>
+      </div>
+
+      <!-- ══ DRUG INTERACTIONS ══ -->
+      <div class="module" id="mod-interaction">
+        <div class="module-header">
+          <div class="module-title">💊 Drug Interactions <span class="patient-badge adult" id="int-badge">Adult</span></div>
+          <div class="module-desc">Check drug–drug and drug–food interactions via OpenFDA</div>
+        </div>
+        <div class="disclaimer">⚠️ <span>Data sourced from OpenFDA (US FDA drug labels). Interactions apply universally regardless of country.</span></div>
+
+        <div class="card">
+          <div class="card-title">Enter Drugs</div>
+          <div class="field-row">
+            <div class="field"><label>Drug 1</label><input type="text" id="int-drug1" placeholder="e.g. warfarin"></div>
+            <div class="field"><label>Drug 2</label><input type="text" id="int-drug2" placeholder="e.g. aspirin"></div>
+          </div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;">
+            <button class="btn btn-primary" onclick="checkInteraction()">Check Interaction</button>
+            <button class="btn btn-secondary" onclick="checkFoodInteraction()">Check Drug–Food</button>
+          </div>
+        </div>
+
+        <div id="int-result" class="result">
+          <div class="result-title" id="int-result-title"></div>
+          <div class="result-body" id="int-result-body"></div>
+        </div>
+
+        <div class="card" id="int-history-card" style="display:none">
+          <div class="card-title">Recent Searches</div>
+          <div id="int-history"></div>
+        </div>
+      </div>
+
+      <!-- ══ IV COMPATIBILITY ══ -->
+      <div class="module" id="mod-iv">
+        <div class="module-header">
+          <div class="module-title">💉 IV Compatibility <span class="patient-badge adult" id="iv-badge">Adult</span></div>
+          <div class="module-desc">Y-site and admixture compatibility for common IV medications</div>
+        </div>
+        <div class="disclaimer">⚠️ <span>Based on published compatibility data. Concentration and diluent affect compatibility. Always verify with current literature.</span></div>
+
+        <div class="card">
+          <div class="card-title">Check Compatibility</div>
+          <div class="field-row">
+            <div class="field"><label>Drug A</label>
+              <select id="iv-drug1">
+                <option value="">Select drug…</option>
+              </select>
+            </div>
+            <div class="field"><label>Drug B</label>
+              <select id="iv-drug2">
+                <option value="">Select drug…</option>
+              </select>
+            </div>
+          </div>
+          <button class="btn btn-primary" onclick="checkIV()">Check</button>
+        </div>
+
+        <div id="iv-result" class="result">
+          <div class="result-title" id="iv-result-title"></div>
+          <div class="result-body" id="iv-result-body"></div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Common IV Drug Reference</div>
+          <div class="table-wrap">
+            <table id="iv-table">
+              <thead><tr><th>Drug</th><th>Usual Diluent</th><th>Concentration</th><th>Rate</th></tr></thead>
+              <tbody id="iv-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ CRUSH/SPLIT ══ -->
+      <div class="module" id="mod-crush">
+        <div class="module-header">
+          <div class="module-title">🔨 Crush & Split Guide <span class="patient-badge adult" id="crush-badge">Adult</span></div>
+          <div class="module-desc">Which tablets/capsules can be crushed or split for NG tube or swallowing difficulty</div>
+        </div>
+        <div class="disclaimer">⚠️ <span>Based on NPC UK and MIMS data. Always check current product information. Crushing may affect bioavailability.</span></div>
+
+        <div class="card">
+          <div class="card-title">Search Drug</div>
+          <div class="search-wrap field">
+            <span class="search-icon">🔍</span>
+            <input type="text" id="crush-search" placeholder="Type drug name…" oninput="filterCrush()">
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Drug</th><th>Form</th><th>Crush?</th><th>Split?</th><th>Notes</th></tr></thead>
+              <tbody id="crush-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ HIGH ALERT ══ -->
+      <div class="module" id="mod-highalert">
+        <div class="module-header">
+          <div class="module-title">⚠️ High Alert & LASA <span class="patient-badge adult" id="ha-badge">Adult</span></div>
+          <div class="module-desc">MOH Malaysia high-alert medications and look-alike/sound-alike (LASA) drug pairs</div>
+        </div>
+        <div class="disclaimer">⚠️ <span>Based on MOH Malaysia National Medication Error Reporting System (MERS) and ISMP guidelines.</span></div>
+
+        <div class="card">
+          <div class="search-wrap field">
+            <span class="search-icon">🔍</span>
+            <input type="text" id="ha-search" placeholder="Search drug name…" oninput="filterHA()">
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">High Alert Medications</div>
+          <div class="table-wrap">
+            <table><thead><tr><th>Drug</th><th>Category</th><th>Risk</th><th>Precaution</th></tr></thead>
+            <tbody id="ha-tbody"></tbody></table>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">LASA Pairs</div>
+          <div class="table-wrap">
+            <table><thead><tr><th>Drug A</th><th>Drug B</th><th>Type</th><th>Risk note</th></tr></thead>
+            <tbody id="lasa-tbody"></tbody></table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ PREGNANCY ══ -->
+      <div class="module" id="mod-pregnancy">
+        <div class="module-header">
+          <div class="module-title">🤰 Pregnancy Drug Safety</div>
+          <div class="module-desc">FDA pregnancy categories and guidance for common drugs</div>
+        </div>
+        <div class="disclaimer">⚠️ <span>FDA categories are being phased out for PLLR labels. Always consult current references and specialist opinion for individual patients.</span></div>
+
+        <div class="card">
+          <div class="search-wrap field">
+            <span class="search-icon">🔍</span>
+            <input type="text" id="preg-search" placeholder="Search drug name…" oninput="filterPreg()">
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="table-wrap">
+            <table><thead><tr><th>Drug</th><th>FDA Cat.</th><th>1st Tri</th><th>2nd/3rd Tri</th><th>Lactation</th><th>Notes</th></tr></thead>
+            <tbody id="preg-tbody"></tbody></table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ LAB INTERPRETER ══ -->
+      <div class="module" id="mod-lab">
+        <div class="module-header">
+          <div class="module-title">📊 Lab Interpreter <span class="patient-badge adult" id="lab-badge">Adult</span></div>
+          <div class="module-desc">Enter lab values to flag abnormal results — renal, liver, electrolytes, haematology</div>
+        </div>
+        <div class="disclaimer">⚠️ <span>Reference ranges from Malaysian laboratory standards. Interpret in clinical context.</span></div>
+
+        <div class="card">
+          <div class="card-title">Renal Function</div>
+          <div class="field-row">
+            <div class="field"><label>Creatinine (µmol/L)</label><input type="number" id="lab-creat" placeholder="60–110"></div>
+            <div class="field"><label>Urea (mmol/L)</label><input type="number" id="lab-urea" placeholder="2.5–7.5"></div>
+          </div>
+          <div class="field-row">
+            <div class="field"><label>Sodium (mmol/L)</label><input type="number" id="lab-na" placeholder="136–145"></div>
+            <div class="field"><label>Potassium (mmol/L)</label><input type="number" id="lab-k" placeholder="3.5–5.0" step="0.1"></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Liver Function</div>
+          <div class="field-row">
+            <div class="field"><label>ALT (U/L)</label><input type="number" id="lab-alt" placeholder="7–40"></div>
+            <div class="field"><label>AST (U/L)</label><input type="number" id="lab-ast" placeholder="10–40"></div>
+          </div>
+          <div class="field-row">
+            <div class="field"><label>ALP (U/L)</label><input type="number" id="lab-alp" placeholder="40–130"></div>
+            <div class="field"><label>Bilirubin total (µmol/L)</label><input type="number" id="lab-bili" placeholder="3–21"></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Haematology</div>
+          <div class="field-row">
+            <div class="field"><label>Hb (g/dL)</label><input type="number" id="lab-hb" placeholder="12–17" step="0.1"></div>
+            <div class="field"><label>WBC (×10⁹/L)</label><input type="number" id="lab-wbc" placeholder="4–11" step="0.1"></div>
+          </div>
+          <div class="field-row">
+            <div class="field"><label>Platelets (×10⁹/L)</label><input type="number" id="lab-plt" placeholder="150–400"></div>
+            <div class="field"><label>INR</label><input type="number" id="lab-inr" placeholder="0.9–1.1" step="0.01"></div>
+          </div>
+        </div>
+
+        <button class="btn btn-primary" onclick="interpretLab()">Interpret Results</button>
+
+        <div id="lab-results" style="margin-top:16px;display:flex;flex-direction:column;gap:10px;"></div>
+      </div>
+
+    </main>
+  </div><!-- layout -->
+
+  <!-- Bottom nav (mobile) -->
+  <nav class="bottom-nav">
+    <button data-mod="home"        onclick="showModule('home')"        class="active"><span class="bnav-icon">🏠</span>Home</button>
+    <button data-mod="dose"        onclick="showModule('dose')"               ><span class="bnav-icon">🧮</span>Dose</button>
+    <button data-mod="interaction" onclick="showModule('interaction')"         ><span class="bnav-icon">💊</span>Interact</button>
+    <button data-mod="iv"          onclick="showModule('iv')"                  ><span class="bnav-icon">💉</span>IV</button>
+    <button data-mod="crush"       onclick="showModule('crush')"               ><span class="bnav-icon">🔨</span>Crush</button>
+    <button data-mod="highalert"   onclick="showModule('highalert')"           ><span class="bnav-icon">⚠️</span>Alert</button>
+    <button data-mod="pregnancy"   onclick="showModule('pregnancy')"           ><span class="bnav-icon">🤰</span>Preg</button>
+    <button data-mod="lab"         onclick="showModule('lab')"                 ><span class="bnav-icon">📊</span>Lab</button>
+  </nav>
+
+</div><!-- app -->
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ══════════════════════════════════════
+   SUPABASE CONFIG
+══════════════════════════════════════ */
+const SB_URL = 'https://zmwibelmwvzxtlekxsro.supabase.co';
+const SB_KEY = 'sb_publishable_sLwFC0WJEaCc0C0ymEg5DQ_ZZlYqstX';
+
+function sbFetch(path, opts = {}) {
+  return fetch(`${SB_URL}/rest/v1/${path}`, {
+    headers: {
+      apikey: SB_KEY,
+      Authorization: `Bearer ${SB_KEY}`,
+      'Content-Type': 'application/json',
+      Prefer: opts.prefer || '',
+      ...opts.headers,
+    },
+    ...opts,
+  });
+}
+
+/* ══════════════════════════════════════
+   GLOBAL STATE
+══════════════════════════════════════ */
+let patientType = 'adult'; // 'adult' | 'peds'
+let currentModule = 'home';
+
+/* ══════════════════════════════════════
+   NAVIGATION
+══════════════════════════════════════ */
+function showModule(id) {
+  document.querySelectorAll('.module').forEach(m => m.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.querySelectorAll('.bottom-nav button').forEach(b => b.classList.remove('active'));
+
+  document.getElementById('mod-' + id).classList.add('active');
+  document.querySelector(`.nav-item[data-mod="${id}"]`)?.classList.add('active');
+  document.querySelector(`.bottom-nav button[data-mod="${id}"]`)?.classList.add('active');
+  currentModule = id;
+}
+
+function setPatient(type) {
+  patientType = type;
+  document.getElementById('btn-adult').classList.toggle('active', type === 'adult');
+  document.getElementById('btn-peds').classList.toggle('active', type === 'peds');
+
+  const label = type === 'adult' ? 'Adult' : 'Paeds';
+  const cls   = type === 'adult' ? 'adult' : 'peds';
+  ['dose','int','iv','crush','ha','lab'].forEach(id => {
+    const el = document.getElementById(id + '-badge');
+    if (el) { el.textContent = label; el.className = `patient-badge ${cls}`; }
+  });
+
+  // Update age label
+  document.getElementById('dose-age-unit').textContent = type === 'peds' ? '(months)' : '(years)';
+  // Re-render lab ranges
+  updateLabPlaceholders();
+}
+
+/* ══════════════════════════════════════
+   TOAST
+══════════════════════════════════════ */
+let toastTimer;
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 2500);
+}
+
+/* ══════════════════════════════════════
+   DOSE CALCULATOR
+══════════════════════════════════════ */
+function calcDose() {
+  const weight = parseFloat(document.getElementById('dose-weight').value);
+  const age    = parseFloat(document.getElementById('dose-age').value);
+  const sex    = document.getElementById('dose-sex').value;
+  const scr    = parseFloat(document.getElementById('dose-scr').value);
+  const mgkg   = parseFloat(document.getElementById('dose-mgkg').value);
+  const maxD   = parseFloat(document.getElementById('dose-max').value);
+
+  const res = document.getElementById('dose-result');
+
+  if (!weight || !mgkg) {
+    res.className = 'result warn show';
+    document.getElementById('dose-result-title').textContent = 'Missing fields';
+    document.getElementById('dose-result-body').textContent = 'Enter at least weight and dose per kg.';
+    return;
+  }
+
+  let dose = weight * mgkg;
+  if (maxD && dose > maxD) dose = maxD;
+
+  let bodyHTML = `<div style="margin-bottom:12px"><span class="value-big">${dose.toFixed(1)} mg</span></div>`;
+  bodyHTML += `<div style="font-size:0.85rem;color:var(--fg-2)">Based on: ${weight} kg × ${mgkg} mg/kg</div>`;
+  if (maxD && weight * mgkg > maxD) bodyHTML += `<div style="font-size:0.85rem;color:var(--yellow)">⚠️ Capped at maximum dose of ${maxD} mg</div>`;
+
+  // CrCl (Cockcroft-Gault)
+  if (scr && age && patientType === 'adult') {
+    const scrMgDl = scr / 88.4;
+    let crcl = ((140 - age) * weight) / (72 * scrMgDl);
+    if (sex === 'female') crcl *= 0.85;
+    crcl = Math.max(0, crcl);
+
+    let renalClass = '', renalLabel = '';
+    if      (crcl >= 90)         { renalClass = 'tag-green';  renalLabel = 'Normal'; }
+    else if (crcl >= 60)         { renalClass = 'tag-blue';   renalLabel = 'Mild CKD'; }
+    else if (crcl >= 30)         { renalClass = 'tag-yellow'; renalLabel = 'Moderate CKD — consider dose reduction'; }
+    else if (crcl >= 15)         { renalClass = 'tag-orange'; renalLabel = 'Severe CKD — dose reduction required'; }
+    else                         { renalClass = 'tag-red';    renalLabel = 'Kidney failure — specialist review'; }
+
+    bodyHTML += `
+      <hr style="border:none;border-top:1px solid var(--border);margin:12px 0">
+      <div style="font-weight:600;margin-bottom:6px">Renal Function (Cockcroft-Gault)</div>
+      <div style="margin-bottom:6px"><span class="value-big" style="font-size:1.4rem">${crcl.toFixed(1)}</span> <span style="font-size:0.85rem;color:var(--fg-2)">mL/min</span></div>
+      <span class="tag ${renalClass}">${renalLabel}</span>`;
+  }
+
+  if (patientType === 'peds' && age) {
+    bodyHTML += `<div style="margin-top:10px;font-size:0.82rem;color:var(--fg-2)">⚠️ Paediatric dosing: verify with BNF for Children or local formulary.</div>`;
+  }
+
+  res.className = 'result info show';
+  document.getElementById('dose-result-title').textContent = 'Calculated Dose';
+  document.getElementById('dose-result-body').innerHTML = bodyHTML;
+}
+
+/* ══════════════════════════════════════
+   DRUG INTERACTIONS
+══════════════════════════════════════ */
+async function checkInteraction() {
+  const d1 = document.getElementById('int-drug1').value.trim();
+  const d2 = document.getElementById('int-drug2').value.trim();
+  const res = document.getElementById('int-result');
+
+  if (!d1 || !d2) {
+    res.className = 'result warn show';
+    document.getElementById('int-result-title').textContent = 'Enter both drugs';
+    document.getElementById('int-result-body').textContent = '';
+    return;
+  }
+
+  res.className = 'result neutral show';
+  document.getElementById('int-result-title').innerHTML = '<span class="spinner"></span> Checking…';
+  document.getElementById('int-result-body').textContent = '';
+
+  try {
+    const url = `https://api.fda.gov/drug/label.json?search=drug_interactions:"${encodeURIComponent(d2)}"&limit=3`;
+    const resp = await fetch(`https://api.fda.gov/drug/label.json?search=openfda.generic_name:"${encodeURIComponent(d1)}"&limit=3`);
+    const data = await resp.json();
+
+    let found = false;
+    let interactionText = '';
+
+    if (data.results) {
+      for (const result of data.results) {
+        const di = result.drug_interactions;
+        if (di) {
+          const text = Array.isArray(di) ? di.join(' ') : di;
+          const regex = new RegExp(d2.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
+          if (regex.test(text)) {
+            found = true;
+            // Extract relevant sentence
+            const sentences = text.split(/[.!?]+/).filter(s => regex.test(s));
+            interactionText = sentences.slice(0, 3).join('. ').trim() + '.';
+            break;
+          }
+        }
+      }
+    }
+
+    // Save to Supabase
+    sbFetch('interaction_searches', {
+      method: 'POST',
+      prefer: 'return=minimal',
+      body: JSON.stringify({ drug1: d1, drug2: d2 }),
+    });
+
+    if (found) {
+      res.className = 'result danger show';
+      document.getElementById('int-result-title').textContent = `⚠️ Interaction found: ${d1} + ${d2}`;
+      document.getElementById('int-result-body').textContent = interactionText || 'Interaction reported in FDA label. Review full prescribing information.';
+    } else {
+      res.className = 'result safe show';
+      document.getElementById('int-result-title').textContent = `✓ No interaction found in FDA labels`;
+      document.getElementById('int-result-body').textContent = `No documented interaction between ${d1} and ${d2} was found in FDA drug labels. This does not exclude all possible interactions — verify with BNF or Micromedex for comprehensive coverage.`;
+    }
+
+    loadIntHistory();
+  } catch (e) {
+    res.className = 'result warn show';
+    document.getElementById('int-result-title').textContent = 'API error';
+    document.getElementById('int-result-body').textContent = 'Could not reach OpenFDA. Check your connection.';
+  }
+}
+
+async function checkFoodInteraction() {
+  const d1 = document.getElementById('int-drug1').value.trim();
+  const res = document.getElementById('int-result');
+
+  if (!d1) {
+    res.className = 'result warn show';
+    document.getElementById('int-result-title').textContent = 'Enter Drug 1 for food interaction check';
+    document.getElementById('int-result-body').textContent = '';
+    return;
+  }
+
+  res.className = 'result neutral show';
+  document.getElementById('int-result-title').innerHTML = '<span class="spinner"></span> Checking food interactions…';
+  document.getElementById('int-result-body').textContent = '';
+
+  try {
+    const resp = await fetch(`https://api.fda.gov/drug/label.json?search=openfda.generic_name:"${encodeURIComponent(d1)}"&limit=3`);
+    const data = await resp.json();
+
+    let foodText = '';
+    if (data.results) {
+      for (const result of data.results) {
+        const fi = result.food_and_drug_interaction || result.drug_and_or_laboratory_test_interactions;
+        if (fi) {
+          foodText = Array.isArray(fi) ? fi.join(' ') : fi;
+          break;
+        }
+        // Also check drug_interactions for food mentions
+        const di = result.drug_interactions;
+        if (di) {
+          const text = Array.isArray(di) ? di.join(' ') : di;
+          if (/food|meal|grapefruit|dairy|antacid|milk|juice/i.test(text)) {
+            foodText = text.split(/[.!?]+/).filter(s => /food|meal|grapefruit|dairy|antacid|milk|juice/i.test(s)).join('. ');
+          }
+        }
+      }
+    }
+
+    if (foodText) {
+      res.className = 'result warn show';
+      document.getElementById('int-result-title').textContent = `🍊 Food interactions: ${d1}`;
+      document.getElementById('int-result-body').textContent = foodText.slice(0, 600) + (foodText.length > 600 ? '…' : '');
+    } else {
+      res.className = 'result safe show';
+      document.getElementById('int-result-title').textContent = `✓ No food interactions found in FDA labels`;
+      document.getElementById('int-result-body').textContent = `No specific food interactions documented for ${d1} in FDA labels.`;
+    }
+  } catch (e) {
+    res.className = 'result warn show';
+    document.getElementById('int-result-title').textContent = 'API error';
+    document.getElementById('int-result-body').textContent = 'Could not reach OpenFDA.';
+  }
+}
+
+async function loadIntHistory() {
+  try {
+    const res = await sbFetch('interaction_searches?select=drug1,drug2,created_at&order=created_at.desc&limit=5');
+    const data = await res.json();
+    if (!data.length) return;
+
+    document.getElementById('int-history-card').style.display = 'block';
+    document.getElementById('int-history').innerHTML = data.map(r =>
+      `<div style="padding:6px 0;border-bottom:1px solid var(--border);font-size:0.85rem;color:var(--fg-2)">${r.drug1} + ${r.drug2}</div>`
+    ).join('');
+  } catch {}
+}
+
+/* ══════════════════════════════════════
+   IV COMPATIBILITY DATA
+══════════════════════════════════════ */
+const IV_DRUGS = [
+  'Amikacin','Amiodarone','Ampicillin','Cefazolin','Ceftriaxone','Ciprofloxacin',
+  'Clindamycin','Co-Amoxiclav','Dexamethasone','Digoxin','Dopamine','Furosemide',
+  'Gentamicin','Heparin','Hydrocortisone','Insulin (Regular)','KCl','Magnesium Sulfate',
+  'Metronidazole','Midazolam','Morphine','Noradrenaline','Omeprazole','Pethidine',
+  'Phenytoin','Potassium Chloride','Ranitidine','Sodium Bicarbonate','Vancomycin'
+];
+
+// Compatibility matrix: 'C'=compatible, 'I'=incompatible, 'V'=variable/concentration dependent, '?'=unknown
+const IV_COMPAT = {
+  'Heparin+KCl': 'C',
+  'Heparin+Potassium Chloride': 'C',
+  'Furosemide+Heparin': 'C',
+  'Morphine+Midazolam': 'C',
+  'Dexamethasone+Ondansetron': 'C',
+  'Metronidazole+Ceftriaxone': 'C',
+  'Gentamicin+Heparin': 'I',
+  'Phenytoin+Dextrose': 'I',
+  'Phenytoin+NaCl': 'C',
+  'Ampicillin+Gentamicin': 'I',
+  'Ceftriaxone+Calcium': 'I',
+  'Amiodarone+Heparin': 'I',
+  'Sodium Bicarbonate+Calcium': 'I',
+  'Vancomycin+Heparin': 'I',
+  'Furosemide+Midazolam': 'I',
+  'Insulin (Regular)+KCl': 'C',
+  'Dopamine+Heparin': 'C',
+  'Noradrenaline+Heparin': 'V',
+  'Midazolam+KCl': 'C',
+  'Morphine+Heparin': 'C',
+};
+
+const IV_REF = [
+  { drug:'Vancomycin',   diluent:'NS or D5W', conc:'2.5–5 mg/mL', rate:'Over 60 min (max 10 mg/min)' },
+  { drug:'Gentamicin',   diluent:'NS or D5W', conc:'1–2 mg/mL',   rate:'Over 30–60 min' },
+  { drug:'Amikacin',     diluent:'NS or D5W', conc:'≤5 mg/mL',    rate:'Over 30–60 min' },
+  { drug:'Ceftriaxone',  diluent:'NS or D5W', conc:'≤40 mg/mL',   rate:'Over 30 min (IV) or 3–5 min (slow IV)' },
+  { drug:'Metronidazole',diluent:'Ready to use 5 mg/mL', conc:'5 mg/mL', rate:'Over 20–60 min' },
+  { drug:'Ciprofloxacin',diluent:'NS or D5W', conc:'1–2 mg/mL',   rate:'Over 60 min' },
+  { drug:'Amiodarone',   diluent:'D5W only',  conc:'1.5–6 mg/mL', rate:'Loading: 150 mg/10 min; then 1 mg/min ×6h' },
+  { drug:'Phenytoin',    diluent:'NS only',   conc:'≤6.7 mg/mL',  rate:'Max 50 mg/min (adults); 1–3 mg/kg/min (peds)' },
+  { drug:'Furosemide',   diluent:'NS or D5W', conc:'≤10 mg/mL',   rate:'≤4 mg/min (max); usual 1–2 mg/min' },
+  { drug:'Omeprazole',   diluent:'NS',        conc:'0.4 mg/mL',   rate:'Over 20–30 min' },
+  { drug:'KCl',          diluent:'NS or D5W', conc:'≤40 mmol/L (peripheral)', rate:'≤10 mmol/h peripheral; ≤20 mmol/h central' },
+  { drug:'Magnesium Sulfate', diluent:'NS or D5W', conc:'20–50%', rate:'1–2 g/h (eclampsia loading: 4 g/20 min)' },
+  { drug:'Noradrenaline',diluent:'D5W or D5NS', conc:'4–16 mg/50 mL', rate:'0.01–3 mcg/kg/min, titrate' },
+  { drug:'Dopamine',     diluent:'D5W',       conc:'200–800 mcg/mL', rate:'2–20 mcg/kg/min, titrate' },
+];
+
+function populateIVDropdowns() {
+  const s1 = document.getElementById('iv-drug1');
+  const s2 = document.getElementById('iv-drug2');
+  IV_DRUGS.forEach(d => {
+    s1.add(new Option(d, d));
+    s2.add(new Option(d, d));
+  });
+}
+
+function checkIV() {
+  const a = document.getElementById('iv-drug1').value;
+  const b = document.getElementById('iv-drug2').value;
+  const res = document.getElementById('iv-result');
+
+  if (!a || !b) {
+    res.className = 'result warn show';
+    document.getElementById('iv-result-title').textContent = 'Select both drugs';
+    document.getElementById('iv-result-body').textContent = '';
+    return;
+  }
+  if (a === b) {
+    res.className = 'result neutral show';
+    document.getElementById('iv-result-title').textContent = 'Same drug selected';
+    document.getElementById('iv-result-body').textContent = 'Select two different drugs.';
+    return;
+  }
+
+  const key1 = `${a}+${b}`;
+  const key2 = `${b}+${a}`;
+  const compat = IV_COMPAT[key1] || IV_COMPAT[key2] || '?';
+
+  if (compat === 'C') {
+    res.className = 'result safe show';
+    document.getElementById('iv-result-title').textContent = `✓ Compatible: ${a} + ${b}`;
+    document.getElementById('iv-result-body').textContent = 'These drugs are generally compatible for Y-site administration. Verify concentration and diluent — compatibility is concentration-dependent.';
+  } else if (compat === 'I') {
+    res.className = 'result danger show';
+    document.getElementById('iv-result-title').textContent = `✗ INCOMPATIBLE: ${a} + ${b}`;
+    document.getElementById('iv-result-body').textContent = 'DO NOT administer together in the same line. Use separate IV lines or flush between administrations.';
+  } else if (compat === 'V') {
+    res.className = 'result warn show';
+    document.getElementById('iv-result-title').textContent = `⚠️ Variable: ${a} + ${b}`;
+    document.getElementById('iv-result-body').textContent = 'Compatibility is concentration and diluent dependent. Verify with Trissel\'s or current product information before co-administration.';
+  } else {
+    res.className = 'result neutral show';
+    document.getElementById('iv-result-title').textContent = `? Unknown: ${a} + ${b}`;
+    document.getElementById('iv-result-body').textContent = 'No compatibility data available in this dataset. Consult Trissel\'s IV compatibility guide or hospital pharmacy before co-administration.';
+  }
+}
+
+function renderIVTable() {
+  const tbody = document.getElementById('iv-tbody');
+  tbody.innerHTML = IV_REF.map(r =>
+    `<tr><td><strong>${r.drug}</strong></td><td>${r.diluent}</td><td class="mono">${r.conc}</td><td>${r.rate}</td></tr>`
+  ).join('');
+}
+
+/* ══════════════════════════════════════
+   CRUSH/SPLIT DATA
+══════════════════════════════════════ */
+const CRUSH_DATA = [
+  { drug:'Amlodipine',       form:'Tablet',  crush:'Yes', split:'Yes', notes:'No special coating' },
+  { drug:'Aspirin EC',       form:'EC Tab',  crush:'No',  split:'No',  notes:'Enteric coating protects stomach; crushing negates effect' },
+  { drug:'Atenolol',         form:'Tablet',  crush:'Yes', split:'Yes', notes:'Bitter taste' },
+  { drug:'Carbamazepine MR', form:'MR Tab',  crush:'No',  split:'No',  notes:'Modified release — crushing causes dose dumping' },
+  { drug:'Ciprofloxacin',    form:'Tablet',  crush:'Yes', split:'Yes', notes:'Bitter; may affect chelation if crushed with dairy/antacids' },
+  { drug:'Clarithromycin MR',form:'MR Tab',  crush:'No',  split:'No',  notes:'Modified release — do not crush' },
+  { drug:'Clonazepam',       form:'Tablet',  crush:'Yes', split:'Yes', notes:'Handle with care — cytotoxic risk' },
+  { drug:'Co-Amoxiclav',     form:'Tablet',  crush:'Yes', split:'No',  notes:'Can be crushed; do not split (uneven dose)' },
+  { drug:'Diclofenac EC',    form:'EC Tab',  crush:'No',  split:'No',  notes:'Enteric coated — crushing causes GI irritation' },
+  { drug:'Digoxin',          form:'Tablet',  crush:'Yes', split:'Yes', notes:'Narrow therapeutic index — accurate dose critical' },
+  { drug:'Diltiazem MR',     form:'MR Cap',  crush:'No',  split:'No',  notes:'Modified release — do not open/crush' },
+  { drug:'Doxycycline',      form:'Capsule', crush:'No',  split:'No',  notes:'Irritant — oesophageal damage risk if opened' },
+  { drug:'Enalapril',        form:'Tablet',  crush:'Yes', split:'Yes', notes:'Stable when crushed; mix in water' },
+  { drug:'Felodipine MR',    form:'MR Tab',  crush:'No',  split:'No',  notes:'Modified release — do not crush' },
+  { drug:'Folic Acid',       form:'Tablet',  crush:'Yes', split:'Yes', notes:'No issues' },
+  { drug:'Furosemide',       form:'Tablet',  crush:'Yes', split:'Yes', notes:'No issues' },
+  { drug:'Glibenclamide',    form:'Tablet',  crush:'Yes', split:'Yes', notes:'No issues' },
+  { drug:'Hydralazine',      form:'Tablet',  crush:'Yes', split:'Yes', notes:'Handle with care — potential teratogen' },
+  { drug:'Isosorbide MN MR', form:'MR Tab',  crush:'No',  split:'No',  notes:'Modified release — crushing causes rapid release' },
+  { drug:'Lansoprazole',     form:'Cap',     crush:'No',  split:'No',  notes:'Open capsule, sprinkle enteric granules — do NOT crush granules' },
+  { drug:'Lisinopril',       form:'Tablet',  crush:'Yes', split:'Yes', notes:'Stable when crushed' },
+  { drug:'Losartan',         form:'Tablet',  crush:'Yes', split:'Yes', notes:'No issues' },
+  { drug:'Metformin',        form:'Tablet',  crush:'Yes', split:'Yes', notes:'Immediate release only; MR formulation — do not crush' },
+  { drug:'Metoprolol MR',    form:'MR Tab',  crush:'No',  split:'No',  notes:'Modified release — do not crush' },
+  { drug:'Metronidazole',    form:'Tablet',  crush:'Yes', split:'Yes', notes:'Very bitter taste' },
+  { drug:'Nifedipine MR',    form:'MR Tab',  crush:'No',  split:'No',  notes:'Modified release — do not crush' },
+  { drug:'Omeprazole',       form:'Cap',     crush:'No',  split:'No',  notes:'Open capsule, sprinkle enteric granules — do NOT crush granules' },
+  { drug:'Paracetamol',      form:'Tablet',  crush:'Yes', split:'Yes', notes:'No issues; soluble form preferable for NG' },
+  { drug:'Phenytoin',        form:'Capsule', crush:'No',  split:'No',  notes:'Open capsule — powder irritant; suspension preferable' },
+  { drug:'Prednisolone',     form:'Tablet',  crush:'Yes', split:'Yes', notes:'Soluble form available and preferable' },
+  { drug:'Propranolol',      form:'Tablet',  crush:'Yes', split:'Yes', notes:'MR formulation — do not crush' },
+  { drug:'Simvastatin',      form:'Tablet',  crush:'Yes', split:'Yes', notes:'Light-sensitive; protect from light after crushing' },
+  { drug:'Spironolactone',   form:'Tablet',  crush:'Yes', split:'Yes', notes:'Suspension can be prepared' },
+  { drug:'Tramadol MR',      form:'MR Cap',  crush:'No',  split:'No',  notes:'Modified release — do not crush (opioid dose dumping risk)' },
+  { drug:'Warfarin',         form:'Tablet',  crush:'Yes', split:'Yes', notes:'Narrow therapeutic index — weigh accurately; teratogenic — handle with care' },
+];
+
+let crushFiltered = [...CRUSH_DATA];
+
+function renderCrush(data) {
+  document.getElementById('crush-tbody').innerHTML = data.map(r => {
+    const crushTag = r.crush === 'Yes' ? '<span class="tag tag-green">Yes</span>' : r.crush === 'No' ? '<span class="tag tag-red">No</span>' : '<span class="tag tag-yellow">Caution</span>';
+    const splitTag = r.split === 'Yes' ? '<span class="tag tag-green">Yes</span>' : r.split === 'No' ? '<span class="tag tag-red">No</span>' : '<span class="tag tag-yellow">Caution</span>';
+    return `<tr><td><strong>${r.drug}</strong></td><td><span class="tag tag-blue">${r.form}</span></td><td>${crushTag}</td><td>${splitTag}</td><td style="color:var(--fg-2);font-size:0.82rem">${r.notes}</td></tr>`;
+  }).join('');
+}
+
+function filterCrush() {
+  const q = document.getElementById('crush-search').value.toLowerCase();
+  crushFiltered = CRUSH_DATA.filter(r => r.drug.toLowerCase().includes(q));
+  renderCrush(crushFiltered);
+}
+
+/* ══════════════════════════════════════
+   HIGH ALERT & LASA DATA
+══════════════════════════════════════ */
+const HA_DATA = [
+  { drug:'Concentrated Electrolytes (KCl, NaCl >0.9%, MgSO4)',    cat:'Electrolytes',    risk:'Critical', precaution:'Must be diluted before use; never give undiluted KCl IV bolus' },
+  { drug:'Insulin (all types)',                                     cat:'Antidiabetic',    risk:'Critical', precaution:'Use dedicated insulin syringes; double-check dose and type' },
+  { drug:'Anticoagulants (Heparin, Warfarin, LMWHs)',              cat:'Anticoagulant',   risk:'High',     precaution:'Independent double-check; monitor INR/aPTT; antidote available' },
+  { drug:'Opioids (Morphine, Pethidine, Fentanyl, Tramadol)',      cat:'Opioid analgesic',risk:'High',     precaution:'Respiratory depression risk; naloxone available; verify dose' },
+  { drug:'Chemotherapy agents',                                     cat:'Oncology',        risk:'Critical', precaution:'Specialist pharmacist check; specific administration protocols' },
+  { drug:'Neuromuscular blocking agents (Vecuronium, Atracurium)', cat:'NMB agent',       risk:'Critical', precaution:'Must be ventilated; differentiate from other vials; dedicated storage' },
+  { drug:'Hypertonic Saline (>0.9%)',                              cat:'Electrolyte',     risk:'High',     precaution:'Central line only; neurological monitoring required' },
+  { drug:'Methotrexate (oral, non-oncology)',                      cat:'DMARD',           risk:'High',     precaution:'Weekly dose — daily dosing is fatal; patient education critical' },
+  { drug:'Amiodarone',                                              cat:'Antiarrhythmic',  risk:'High',     precaution:'Multiple interactions; thyroid/lung/liver monitoring; D5W only' },
+  { drug:'Phenytoin IV',                                           cat:'Anticonvulsant',  risk:'High',     precaution:'Cardiac monitoring; NS only; max 50 mg/min; purple glove syndrome' },
+  { drug:'Oxytocin (IV infusion)',                                  cat:'Uterotonic',      risk:'High',     precaution:'Dedicated IV line; titrate carefully; fluid overload risk' },
+  { drug:'Digoxin',                                                 cat:'Cardiac glycoside',risk:'High',   precaution:'Narrow therapeutic index; renal function monitoring; toxicity signs' },
+];
+
+const LASA_DATA = [
+  { a:'Hydroxyzine',    b:'Hydralazine',     type:'Sound-alike', note:'Antihistamine vs antihypertensive — very different indications' },
+  { a:'Metformin',      b:'Metronidazole',   type:'Sound-alike', note:'Antidiabetic vs antibiotic' },
+  { a:'Prednisolone',   b:'Prednisone',      type:'Look-alike',  note:'Different potencies; verify product' },
+  { a:'Losartan',       b:'Valsartan',       type:'Look-alike',  note:'Both ARBs; different doses' },
+  { a:'Dopamine',       b:'Dobutamine',      type:'Sound-alike', note:'Different receptor profiles and indications' },
+  { a:'Noradrenaline',  b:'Adrenaline',      type:'Look-alike',  note:'10× concentration difference — fatal if confused' },
+  { a:'Chlorpromazine', b:'Chlorpropamide',  type:'Sound-alike', note:'Antipsychotic vs antidiabetic' },
+  { a:'Glibenclamide',  b:'Glipizide',       type:'Look-alike',  note:'Different potencies; verify formulation' },
+  { a:'Insulin Actrapid',b:'Insulin Mixtard',type:'Look-alike',  note:'Short-acting vs premixed — different regimens' },
+  { a:'Heparin',        b:'Hep-flush',       type:'Look-alike',  note:'Therapeutic vs flush concentration' },
+  { a:'Morphine',       b:'Hydromorphone',   type:'Sound-alike', note:'5× potency difference' },
+  { a:'Azithromycin',   b:'Erythromycin',    type:'Look-alike',  note:'Different doses and dosing frequency' },
+];
+
+let haFiltered = [...HA_DATA];
+let lasaFiltered = [...LASA_DATA];
+
+function renderHA(data) {
+  document.getElementById('ha-tbody').innerHTML = data.map(r => {
+    const riskTag = r.risk === 'Critical' ? 'tag-red' : r.risk === 'High' ? 'tag-orange' : 'tag-yellow';
+    return `<tr><td><strong>${r.drug}</strong></td><td>${r.cat}</td><td><span class="tag ${riskTag}">${r.risk}</span></td><td style="font-size:0.82rem;color:var(--fg-2)">${r.precaution}</td></tr>`;
+  }).join('');
+}
+
+function renderLASA(data) {
+  document.getElementById('lasa-tbody').innerHTML = data.map(r => {
+    const typeTag = r.type === 'Sound-alike' ? 'tag-purple' : 'tag-orange';
+    return `<tr><td><strong>${r.a}</strong></td><td><strong>${r.b}</strong></td><td><span class="tag ${typeTag}">${r.type}</span></td><td style="font-size:0.82rem;color:var(--fg-2)">${r.note}</td></tr>`;
+  }).join('');
+}
+
+function filterHA() {
+  const q = document.getElementById('ha-search').value.toLowerCase();
+  haFiltered   = HA_DATA.filter(r => r.drug.toLowerCase().includes(q) || r.cat.toLowerCase().includes(q));
+  lasaFiltered = LASA_DATA.filter(r => r.a.toLowerCase().includes(q) || r.b.toLowerCase().includes(q));
+  renderHA(haFiltered);
+  renderLASA(lasaFiltered);
+}
+
+/* ══════════════════════════════════════
+   PREGNANCY SAFETY DATA
+══════════════════════════════════════ */
+const PREG_DATA = [
+  { drug:'Paracetamol',     cat:'B',  t1:'Safe',    t23:'Safe',      lact:'Compatible', notes:'Preferred analgesic/antipyretic in pregnancy' },
+  { drug:'Aspirin (low dose)',cat:'C/D',t1:'Caution',t23:'Avoid (3rd)','lact':'Compatible (low dose)', notes:'Low-dose for pre-eclampsia prevention; avoid >32 weeks regular use' },
+  { drug:'Ibuprofen',       cat:'C/D',t1:'Caution',t23:'AVOID (3rd)',lact:'Compatible (short term)', notes:'Avoid after 30 weeks — premature ductus arteriosus closure' },
+  { drug:'Amoxicillin',     cat:'B',  t1:'Safe',    t23:'Safe',      lact:'Compatible', notes:'Preferred penicillin in pregnancy' },
+  { drug:'Metronidazole',   cat:'B',  t1:'Caution', t23:'Safe',      lact:'Avoid (express & discard 24h)', notes:'Theoretical teratogenicity in 1st trimester; avoid prolonged exposure in lactation' },
+  { drug:'Metformin',       cat:'B',  t1:'Safe',    t23:'Safe',      lact:'Compatible', notes:'Used in gestational diabetes; may continue if benefits outweigh risks' },
+  { drug:'Insulin',         cat:'B',  t1:'Safe',    t23:'Safe',      lact:'Compatible', notes:'Preferred antidiabetic in pregnancy' },
+  { drug:'Methyldopa',      cat:'B',  t1:'Safe',    t23:'Safe',      lact:'Compatible', notes:'First-line antihypertensive in pregnancy' },
+  { drug:'Labetalol',       cat:'C',  t1:'Caution', t23:'Safe',      lact:'Compatible', notes:'Used for hypertension in pregnancy; monitor fetal growth' },
+  { drug:'Nifedipine',      cat:'C',  t1:'Caution', t23:'Safe',      lact:'Compatible', notes:'Tocolytic and antihypertensive; avoid sublingual in hypertensive crises' },
+  { drug:'Warfarin',        cat:'D/X',t1:'CONTRAINDICATED',t23:'Specialist only',lact:'Compatible', notes:'Embryopathy in 1st tri; ICH risk; switch to heparin for DVT in pregnancy' },
+  { drug:'Heparin (LMWH)',  cat:'B',  t1:'Safe',    t23:'Safe',      lact:'Compatible', notes:'Does not cross placenta; preferred anticoagulant' },
+  { drug:'Atenolol',        cat:'D',  t1:'AVOID',   t23:'Caution',   lact:'Compatible', notes:'Fetal growth restriction; use labetalol instead' },
+  { drug:'ACE Inhibitors',  cat:'D',  t1:'AVOID',   t23:'CONTRAINDICATED', lact:'Caution', notes:'Fetotoxic in 2nd/3rd tri — renal failure, oligohydramnios, skull hypoplasia' },
+  { drug:'Statins',         cat:'X',  t1:'CONTRAINDICATED',t23:'CONTRAINDICATED',lact:'AVOID', notes:'Teratogenic; stop before conception' },
+  { drug:'Ondansetron',     cat:'B',  t1:'Caution', t23:'Safe',      lact:'Compatible', notes:'Used for hyperemesis gravidarum; some data on cleft palate in 1st tri — reassuring overall' },
+  { drug:'Folic Acid',      cat:'A',  t1:'Essential',t23:'Continue', lact:'Compatible', notes:'5 mg/day periconception and 1st trimester; 400 mcg routine supplementation' },
+  { drug:'Prednisolone',    cat:'C',  t1:'Caution', t23:'Caution',   lact:'Compatible', notes:'Use lowest effective dose; cleft palate risk in high doses 1st tri' },
+  { drug:'Erythromycin',    cat:'B',  t1:'Safe',    t23:'Safe',      lact:'Compatible', notes:'Preferred macrolide in pregnancy; avoid estolate form' },
+  { drug:'Ciprofloxacin',   cat:'C',  t1:'AVOID',   t23:'Avoid',     lact:'AVOID',      notes:'Arthropathy in animal studies; use only if no alternative' },
+];
+
+let pregFiltered = [...PREG_DATA];
+
+function renderPreg(data) {
+  document.getElementById('preg-tbody').innerHTML = data.map(r => {
+    const catColor = r.cat === 'A' ? 'tag-green' : r.cat === 'B' ? 'tag-blue' : r.cat.startsWith('C') ? 'tag-yellow' : r.cat.startsWith('D') ? 'tag-orange' : 'tag-red';
+    function cellColor(val) {
+      if (/CONTRA|AVOID/.test(val)) return 'color:var(--red);font-weight:600';
+      if (/Caution|Specialist/.test(val)) return 'color:var(--yellow);font-weight:600';
+      if (/Safe|Compatible|Essential|Continue/.test(val)) return 'color:var(--green);font-weight:500';
+      return '';
+    }
+    return `<tr>
+      <td><strong>${r.drug}</strong></td>
+      <td><span class="tag ${catColor}">${r.cat}</span></td>
+      <td style="font-size:0.82rem;${cellColor(r.t1)}">${r.t1}</td>
+      <td style="font-size:0.82rem;${cellColor(r.t23)}">${r.t23}</td>
+      <td style="font-size:0.82rem;${cellColor(r.lact)}">${r.lact}</td>
+      <td style="font-size:0.78rem;color:var(--fg-2)">${r.notes}</td>
+    </tr>`;
+  }).join('');
+}
+
+function filterPreg() {
+  const q = document.getElementById('preg-search').value.toLowerCase();
+  pregFiltered = PREG_DATA.filter(r => r.drug.toLowerCase().includes(q));
+  renderPreg(pregFiltered);
+}
+
+/* ══════════════════════════════════════
+   LAB INTERPRETER
+══════════════════════════════════════ */
+// Reference ranges — adult and paeds
+const LAB_RANGES = {
+  adult: {
+    creat: { min:60,   max:110,  unit:'µmol/L', name:'Creatinine' },
+    urea:  { min:2.5,  max:7.5,  unit:'mmol/L', name:'Urea' },
+    na:    { min:136,  max:145,  unit:'mmol/L', name:'Sodium' },
+    k:     { min:3.5,  max:5.0,  unit:'mmol/L', name:'Potassium' },
+    alt:   { min:7,    max:40,   unit:'U/L',    name:'ALT' },
+    ast:   { min:10,   max:40,   unit:'U/L',    name:'AST' },
+    alp:   { min:40,   max:130,  unit:'U/L',    name:'ALP' },
+    bili:  { min:3,    max:21,   unit:'µmol/L', name:'Bilirubin' },
+    hb:    { min:12,   max:17,   unit:'g/dL',   name:'Haemoglobin' },
+    wbc:   { min:4,    max:11,   unit:'×10⁹/L', name:'WBC' },
+    plt:   { min:150,  max:400,  unit:'×10⁹/L', name:'Platelets' },
+    inr:   { min:0.9,  max:1.1,  unit:'',       name:'INR' },
+  },
+  peds: {
+    creat: { min:20,   max:80,   unit:'µmol/L', name:'Creatinine (paed)' },
+    urea:  { min:1.8,  max:6.4,  unit:'mmol/L', name:'Urea' },
+    na:    { min:135,  max:145,  unit:'mmol/L', name:'Sodium' },
+    k:     { min:3.4,  max:5.6,  unit:'mmol/L', name:'Potassium' },
+    alt:   { min:5,    max:30,   unit:'U/L',    name:'ALT (paed)' },
+    ast:   { min:15,   max:40,   unit:'U/L',    name:'AST (paed)' },
+    alp:   { min:100,  max:350,  unit:'U/L',    name:'ALP (paed)' },
+    bili:  { min:3,    max:17,   unit:'µmol/L', name:'Bilirubin' },
+    hb:    { min:11,   max:16,   unit:'g/dL',   name:'Haemoglobin (paed)' },
+    wbc:   { min:5,    max:15,   unit:'×10⁹/L', name:'WBC (paed)' },
+    plt:   { min:150,  max:400,  unit:'×10⁹/L', name:'Platelets' },
+    inr:   { min:0.9,  max:1.2,  unit:'',       name:'INR' },
+  }
+};
+
+function updateLabPlaceholders() {
+  const r = LAB_RANGES[patientType];
+  document.getElementById('lab-creat').placeholder = `${r.creat.min}–${r.creat.max}`;
+  document.getElementById('lab-urea').placeholder  = `${r.urea.min}–${r.urea.max}`;
+  document.getElementById('lab-na').placeholder    = `${r.na.min}–${r.na.max}`;
+  document.getElementById('lab-k').placeholder     = `${r.k.min}–${r.k.max}`;
+  document.getElementById('lab-alt').placeholder   = `${r.alt.min}–${r.alt.max}`;
+  document.getElementById('lab-ast').placeholder   = `${r.ast.min}–${r.ast.max}`;
+  document.getElementById('lab-alp').placeholder   = `${r.alp.min}–${r.alp.max}`;
+  document.getElementById('lab-bili').placeholder  = `${r.bili.min}–${r.bili.max}`;
+  document.getElementById('lab-hb').placeholder    = `${r.hb.min}–${r.hb.max}`;
+  document.getElementById('lab-wbc').placeholder   = `${r.wbc.min}–${r.wbc.max}`;
+  document.getElementById('lab-plt').placeholder   = `${r.plt.min}–${r.plt.max}`;
+  document.getElementById('lab-inr').placeholder   = `${r.inr.min}–${r.inr.max}`;
+}
+
+function interpretLab() {
+  const r   = LAB_RANGES[patientType];
+  const ids = ['creat','urea','na','k','alt','ast','alp','bili','hb','wbc','plt','inr'];
+  const vals = {};
+  ids.forEach(id => {
+    const v = parseFloat(document.getElementById('lab-' + id).value);
+    if (!isNaN(v)) vals[id] = v;
+  });
+
+  if (!Object.keys(vals).length) {
+    toast('Enter at least one lab value');
+    return;
+  }
+
+  const container = document.getElementById('lab-results');
+  container.innerHTML = '';
+
+  ids.forEach(id => {
+    if (vals[id] === undefined) return;
+    const ref = r[id];
+    const val = vals[id];
+    let status, cssClass, interpretation = '';
+
+    if (val < ref.min) {
+      const pct = ((ref.min - val) / ref.min * 100).toFixed(0);
+      status   = `LOW ↓`;
+      cssClass = 'danger';
+
+      if (id === 'hb')  interpretation = val < 8 ? 'Severe anaemia — transfusion threshold likely met' : val < 10 ? 'Moderate anaemia — investigate cause' : 'Mild anaemia';
+      if (id === 'k')   interpretation = val < 3.0 ? 'Severe hypokalaemia — IV replacement needed, cardiac monitoring' : 'Hypokalaemia — oral or IV replacement';
+      if (id === 'na')  interpretation = val < 125 ? 'Severe hyponatraemia — specialist review, avoid rapid correction' : 'Hyponatraemia — identify cause';
+      if (id === 'plt') interpretation = val < 50 ? 'Critical thrombocytopenia — bleeding risk high' : val < 100 ? 'Thrombocytopenia — monitor, review medications' : '';
+      if (id === 'inr') interpretation = 'Sub-therapeutic — review anticoagulation';
+    } else if (val > ref.max) {
+      const pct = ((val - ref.max) / ref.max * 100).toFixed(0);
+      status   = `HIGH ↑`;
+      cssClass = id === 'inr' && val > 3 ? 'danger' : 'warn';
+
+      if (id === 'creat') interpretation = val > 300 ? 'Severe renal impairment — dose adjust all renally cleared drugs' : val > 150 ? 'Moderate renal impairment — review drug doses' : 'Mild elevation — monitor';
+      if (id === 'k')     interpretation = val > 6.0 ? 'Severe hyperkalaemia — EMERGENCY, ECG, treat immediately' : val > 5.5 ? 'Hyperkalaemia — review medications (ACEi, LMWH, NSAIDs)' : 'Mild hyperkalaemia';
+      if (id === 'alt' || id === 'ast') { const x = (val / ref.max).toFixed(1); interpretation = x > 10 ? `>${x}× ULN — likely hepatocellular injury` : x > 3 ? `${x}× ULN — significant elevation, review hepatotoxic drugs` : 'Mild elevation'; }
+      if (id === 'inr')   interpretation = val > 5 ? 'High bleeding risk — withhold anticoagulant, consider Vit K' : val > 3 ? 'Supratherapeutic — reduce warfarin dose' : 'Above target — review dose';
+      if (id === 'wbc')   interpretation = val > 20 ? 'Marked leukocytosis — infection, haematological cause?' : 'Leukocytosis — investigate';
+      if (id === 'bili')  interpretation = val > 100 ? 'Significant jaundice — hepatic or obstructive cause' : 'Mild hyperbilirubinaemia';
+    } else {
+      status   = 'Normal ✓';
+      cssClass = 'safe';
+    }
+
+    const el = document.createElement('div');
+    el.className = `result ${cssClass} show`;
+    el.innerHTML = `
+      <div class="result-title" style="display:flex;justify-content:space-between;align-items:center">
+        <span>${ref.name}</span>
+        <span class="mono" style="font-size:1rem">${val} <span style="font-size:0.75rem;font-weight:400">${ref.unit}</span></span>
+      </div>
+      <div style="font-size:0.82rem;opacity:0.8">Ref: ${ref.min}–${ref.max} ${ref.unit} &nbsp;|&nbsp; <strong>${status}</strong></div>
+      ${interpretation ? `<div class="result-body" style="margin-top:6px">${interpretation}</div>` : ''}`;
+    container.appendChild(el);
+  });
+}
+
+/* ══════════════════════════════════════
+   INIT
+══════════════════════════════════════ */
+populateIVDropdowns();
+renderIVTable();
+renderCrush(CRUSH_DATA);
+renderHA(HA_DATA);
+renderLASA(LASA_DATA);
+renderPreg(PREG_DATA);
+updateLabPlaceholders();
+loadIntHistory();
+</script>
+
+</body></html>
